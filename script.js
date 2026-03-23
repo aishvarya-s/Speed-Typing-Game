@@ -27,27 +27,34 @@ function triggerShake() {
   }, 200);
 }
 
+// 💥 SHAKE LOGIC (keydown)
+input.addEventListener("keydown", (e) => {
+
+  // ignore special keys
+  if (e.key.length > 1) return;
+
+  const typed = input.value;
+  const currentIndex = typed.length;
+
+  if (e.key !== text[currentIndex]) {
+    triggerShake();
+  }
+});
+
+// 🌪️ DRIFT + 🎯 COLORING (input)
 input.addEventListener("input", () => {
 
-  // remove drift when user types
+  // remove drift when typing
   document.body.classList.remove("drift");
 
-  // reset timer
+  // reset idle timer
   clearTimeout(idleTimer);
 
-  // start timer again
   idleTimer = setTimeout(() => {
     document.body.classList.add("drift");
-  }, 1500); // 1.5 seconds
+  }, 1500);
 
-  
   const typed = input.value.split("");
-
-  const currentIndex = typed.length - 1;
-
-  if (currentIndex >= 0 && typed[currentIndex] !== text[currentIndex]) {
-  triggerShake();
-  }
 
   spans.forEach((span, index) => {
     const char = typed[index];
