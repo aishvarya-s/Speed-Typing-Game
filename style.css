@@ -1,0 +1,35 @@
+body {
+  font-family: monospace;
+  background: #111;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+#game {
+  text-align: center;
+  width: 60%;
+}
+
+#text {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+#input {
+  padding: 10px;
+  width: 100%;
+  font-size: 18px;
+  border: none;
+  outline: none;
+}
+
+.correct {
+  color: #4caf50;
+}
+
+.wrong {
+  color: #f44336;
+}
