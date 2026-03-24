@@ -1,22 +1,37 @@
 const textDisplay = document.getElementById("text");
 const input = document.getElementById("input");
 
-let idleTimer; 
+let idleTimer;
 
-// sample text
-const text = "The quick brown fox jumps over the lazy dog";
+// sentences
+const texts = [
+  "The quick brown fox jumps over the lazy dog",
+  "Typing fast is a useful skill to learn",
+  "Practice daily to improve your accuracy",
+  "Errors will make the screen shake violently",
+  "Stay focused or the screen will drift away"
+];
 
-textDisplay.innerHTML = "";
+let index = 0;
+let currentText = texts[index];
+let spans = [];
 
-// split text into spans (so we can color each letter)
-text.split("").forEach(char => {
-  const span = document.createElement("span");
-  span.innerText = char;
-  textDisplay.appendChild(span);
-});
+// render text
+function renderText(text) {
+  textDisplay.innerHTML = "";
 
-const spans = textDisplay.querySelectorAll("span");
+  text.split("").forEach(char => {
+    const span = document.createElement("span");
+    span.innerText = char;
+    textDisplay.appendChild(span);
+  });
 
+  spans = textDisplay.querySelectorAll("span"); // ✅ update spans
+}
+
+renderText(currentText);
+
+// 💥 SHAKE FUNCTION
 function triggerShake() {
   const game = document.getElementById("game");
 
@@ -27,8 +42,27 @@ function triggerShake() {
   }, 200);
 }
 
-// 💥 SHAKE LOGIC (keydown)
+// ➡️ NEXT LINE
+function nextLine() {
+  index = (index + 1) % texts.length;
+  currentText = texts[index];
+
+  renderText(currentText);
+
+  input.value = "";
+  document.body.classList.remove("drift");
+}
+
+// 💥 SHAKE + ENTER LOGIC
 input.addEventListener("keydown", (e) => {
+
+  // ENTER → check if correct
+  if (e.key === "Enter") {
+    if (input.value === currentText) {
+      nextLine();
+    }
+    return;
+  }
 
   // ignore special keys
   if (e.key.length > 1) return;
@@ -36,18 +70,18 @@ input.addEventListener("keydown", (e) => {
   const typed = input.value;
   const currentIndex = typed.length;
 
-  if (e.key !== text[currentIndex]) {
+  // case-insensitive compare
+  if (e.key.toLowerCase() !== currentText[currentIndex]?.toLowerCase()) {
     triggerShake();
   }
 });
 
-// 🌪️ DRIFT + 🎯 COLORING (input)
+// 🌪️ DRIFT + 🎯 COLORING
 input.addEventListener("input", () => {
 
   // remove drift when typing
   document.body.classList.remove("drift");
 
-  // reset idle timer
   clearTimeout(idleTimer);
 
   idleTimer = setTimeout(() => {
@@ -60,8 +94,7 @@ input.addEventListener("input", () => {
     const char = typed[index];
 
     if (char == null) {
-      span.classList.remove("correct");
-      span.classList.remove("wrong");
+      span.classList.remove("correct", "wrong");
     } 
     else if (char === span.innerText) {
       span.classList.add("correct");
