@@ -1,11 +1,20 @@
 const textDisplay = document.getElementById("text");
 const input = document.getElementById("input");
-const scoreDisplay = document.getElementById("score");
+const wpmDisplay = document.getElementById("wpm");
+const accuracyDisplay = document.getElementById("accuracy");
 
 let idleTimer;
-let score = 0;
 let currentText = "";
 let spans = [];
+
+// ✅ stats
+let startTime = null;
+let totalKeystrokes = 0;
+let totalMistakes = 0;
+
+// ✅ pause tracking (NEW)
+let pausedTime = 0;
+let pauseStart = null;
 
 // ✅ render text
 function renderText(text) {
@@ -25,52 +34,72 @@ function triggerShake() {
   setTimeout(() => game.classList.remove("shake"), 200);
 }
 
-// ✅ update score
-function addScore() {
-  score += 1;
-  scoreDisplay.innerText = score;
-}
-
-// 🌐 fetch sentence from Quotable API
+// 🌐 fetch sentence
 async function nextSentence() {
+
+  // ✅ STOP drift immediately
+  clearTimeout(idleTimer);
+  document.body.classList.remove("drift");
+
   try {
     const res = await fetch("https://api.quotable.io/random?minLength=60&maxLength=120");
     const data = await res.json();
-
-    currentText = data.content; // ✅ clean quote
+    currentText = data.content;
   } catch (err) {
-    console.error("API failed, using fallback", err);
+    console.error("API failed", err);
     currentText = "Practice typing every day to improve your speed";
   }
 
   renderText(currentText);
   input.value = "";
+
+  // ✅ resume timer after pause
+  if (pauseStart) {
+    pausedTime += (new Date() - pauseStart);
+    pauseStart = null;
+  }
 }
 
-// 💻 handle keypress
+// 💻 keypress handling
 input.addEventListener("keydown", (e) => {
+
   if (e.key === "Enter") {
-    if (input.value === currentText) {
-      addScore();
-      nextSentence(); // ✅ fetch next quote
-    } else {
+
+    // ✅ pause timer while loading next sentence
+    pauseStart = new Date();
+
+    if (input.value !== currentText) {
       triggerShake();
     }
+
+    nextSentence();
     return;
   }
 
-  if (e.key.length > 1) return;
+  // ignore special keys except backspace
+  if (e.key.length > 1 && e.key !== "Backspace") return;
 
-  const typed = input.value;
-  const currentIndex = typed.length;
+  // track keystrokes (ignore backspace)
+  if (e.key !== "Backspace") {
+    totalKeystrokes++;
 
-  if (e.key.toLowerCase() !== currentText[currentIndex]?.toLowerCase()) {
-    triggerShake();
+    const currentIndex = input.value.length;
+
+    if (e.key !== currentText[currentIndex]) {
+      totalMistakes++;
+      triggerShake();
+    }
   }
 });
 
-// 🌪️ drift + 🎯 coloring
+// 🌪️ typing + coloring + drift
 input.addEventListener("input", () => {
+
+  // start timer once
+  if (!startTime) {
+    startTime = new Date();
+  }
+
   document.body.classList.remove("drift");
   clearTimeout(idleTimer);
 
@@ -85,15 +114,39 @@ input.addEventListener("input", () => {
 
     if (char == null) {
       span.classList.remove("correct", "wrong");
-    } else if (char === span.innerText) {
+    } 
+    else if (char === span.innerText) {
       span.classList.add("correct");
       span.classList.remove("wrong");
-    } else {
+    } 
+    else {
       span.classList.add("wrong");
       span.classList.remove("correct");
     }
   });
+
+  updateStats();
 });
+
+// 📊 stats calculation
+function updateStats() {
+  if (!startTime) return;
+
+  // ✅ exclude paused time
+  const timeElapsed = ((new Date() - startTime - pausedTime) / 1000 / 60);
+
+  const correctChars = totalKeystrokes - totalMistakes;
+  const wordsTyped = correctChars / 5;
+
+  const wpm = Math.round(wordsTyped / timeElapsed) || 0;
+
+  const accuracy = totalKeystrokes === 0
+    ? 100
+    : Math.round((correctChars / totalKeystrokes) * 100);
+
+  wpmDisplay.innerText = wpm;
+  accuracyDisplay.innerText = accuracy;
+}
 
 // ✅ start game
 nextSentence();
