@@ -111,19 +111,6 @@ function updateTimer() {
   }
 }
 
-// 🏁 end game
-function endGame() {
-  clearInterval(timerInterval);
-  gameActive = false;
-
-  input.disabled = true;
-
-  const finalWPM = wpmDisplay.innerText;
-  const finalAccuracy = accuracyDisplay.innerText;
-
-  alert(`Time's up!\nWPM: ${finalWPM}\nAccuracy: ${finalAccuracy}%`);
-}
-
 // 💻 keypress handling
 input.addEventListener("keydown", (e) => {
 
@@ -211,6 +198,52 @@ function updateStats() {
 
   wpmDisplay.innerText = wpm;
   accuracyDisplay.innerText = accuracy;
+}
+
+// 🏁 end game
+function endGame() {
+  clearInterval(timerInterval);
+  gameActive = false;
+
+  input.disabled = true;
+
+  // ✅ FIX: remove drift blur
+  clearTimeout(idleTimer);
+  document.body.classList.remove("drift");
+
+  const finalWPM = wpmDisplay.innerText;
+  const finalAccuracy = accuracyDisplay.innerText;
+
+  document.getElementById("final-wpm").innerText = finalWPM;
+  document.getElementById("final-accuracy").innerText = finalAccuracy;
+
+  document.getElementById("result").classList.remove("hidden");
+}
+
+function restartGame() {
+  document.getElementById("result").classList.add("hidden");
+
+  // reset UI
+  wpmDisplay.innerText = 0;
+  accuracyDisplay.innerText = 100;
+  timeDisplay.innerText = 0;
+
+  // reset stats
+  startTime = null;
+  totalKeystrokes = 0;
+  totalMistakes = 0;
+  pausedTime = 0;
+  pauseStart = null;
+
+  // clear text + input
+  currentText = "";
+  textDisplay.innerHTML = "";
+  input.value = "";
+  input.disabled = true;
+
+  // remove drift if any
+  clearTimeout(idleTimer);
+  document.body.classList.remove("drift");
 }
 
 // 🔒 disable input initially
