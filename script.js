@@ -2,6 +2,7 @@ const textDisplay = document.getElementById("text");
 const input = document.getElementById("input");
 const wpmDisplay = document.getElementById("wpm");
 const accuracyDisplay = document.getElementById("accuracy");
+const timeDisplay = document.getElementById("time");
 
 let idleTimer;
 let currentText = "";
@@ -12,9 +13,15 @@ let startTime = null;
 let totalKeystrokes = 0;
 let totalMistakes = 0;
 
-// ✅ pause tracking (NEW)
+// ✅ pause tracking (for API delay)
 let pausedTime = 0;
 let pauseStart = null;
+
+// ✅ timer system
+let gameDuration = 0;
+let timeLeft = 0;
+let timerInterval = null;
+let gameActive = false;
 
 // ✅ render text
 function renderText(text) {
@@ -37,7 +44,6 @@ function triggerShake() {
 // 🌐 fetch sentence
 async function nextSentence() {
 
-  // ✅ STOP drift immediately
   clearTimeout(idleTimer);
   document.body.classList.remove("drift");
 
@@ -53,22 +59,83 @@ async function nextSentence() {
   renderText(currentText);
   input.value = "";
 
-  // ✅ resume timer after pause
+  // resume timer after pause
   if (pauseStart) {
     pausedTime += (new Date() - pauseStart);
     pauseStart = null;
   }
 }
 
+// 🎮 start game
+function startGame(seconds) {
+  gameDuration = seconds;
+  timeLeft = seconds;
+
+  // reset stats
+  startTime = null;
+  totalKeystrokes = 0;
+  totalMistakes = 0;
+  pausedTime = 0;
+  pauseStart = null;
+
+  gameActive = true;
+
+  input.disabled = false;
+  input.value = "";
+  input.focus();
+
+  wpmDisplay.innerText = 0;
+  accuracyDisplay.innerText = 100;
+  timeDisplay.innerText = timeLeft;
+
+  nextSentence();
+
+  clearInterval(timerInterval);
+  timerInterval = setInterval(updateTimer, 1000);
+}
+
+// ⏱️ timer countdown
+function updateTimer() {
+  timeLeft--;
+  timeDisplay.innerText = timeLeft;
+
+  // 🔥 optional: turn red when low
+  if (timeLeft <= 10) {
+    timeDisplay.style.color = "#f44336";
+  } else {
+    timeDisplay.style.color = "white";
+  }
+
+  if (timeLeft <= 0) {
+    endGame();
+  }
+}
+
+// 🏁 end game
+function endGame() {
+  clearInterval(timerInterval);
+  gameActive = false;
+
+  input.disabled = true;
+
+  const finalWPM = wpmDisplay.innerText;
+  const finalAccuracy = accuracyDisplay.innerText;
+
+  alert(`Time's up!\nWPM: ${finalWPM}\nAccuracy: ${finalAccuracy}%`);
+}
+
 // 💻 keypress handling
 input.addEventListener("keydown", (e) => {
 
+  if (!gameActive) return;
+
   if (e.key === "Enter") {
 
-    // ✅ pause timer while loading next sentence
+    // pause timer during sentence load
     pauseStart = new Date();
 
     if (input.value !== currentText) {
+      totalMistakes += 5; // penalty
       triggerShake();
     }
 
@@ -76,10 +143,8 @@ input.addEventListener("keydown", (e) => {
     return;
   }
 
-  // ignore special keys except backspace
   if (e.key.length > 1 && e.key !== "Backspace") return;
 
-  // track keystrokes (ignore backspace)
   if (e.key !== "Backspace") {
     totalKeystrokes++;
 
@@ -95,7 +160,8 @@ input.addEventListener("keydown", (e) => {
 // 🌪️ typing + coloring + drift
 input.addEventListener("input", () => {
 
-  // start timer once
+  if (!gameActive) return;
+
   if (!startTime) {
     startTime = new Date();
   }
@@ -132,7 +198,6 @@ input.addEventListener("input", () => {
 function updateStats() {
   if (!startTime) return;
 
-  // ✅ exclude paused time
   const timeElapsed = ((new Date() - startTime - pausedTime) / 1000 / 60);
 
   const correctChars = totalKeystrokes - totalMistakes;
@@ -148,5 +213,5 @@ function updateStats() {
   accuracyDisplay.innerText = accuracy;
 }
 
-// ✅ start game
-nextSentence();
+// 🔒 disable input initially
+input.disabled = true;

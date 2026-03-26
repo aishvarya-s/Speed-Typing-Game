@@ -26,6 +26,14 @@ body {
   outline: none;
 }
 
+.timer {
+  font-size: 20px;
+  font-weight: bold;
+  color: #00e5ff;
+  margin-bottom: 10px;
+}
+
+/* typing colors */
 .correct {
   color: #4caf50;
 }
@@ -34,13 +42,15 @@ body {
   color: #f44336;
 }
 
+/* idle effect */
 .drift {
-  filter: blur(1px);
+  filter: blur(2px);
   transform: scale(1.02);
-  transition: all 0.3s ease;
+  transition: all 3s ease;
   opacity: 0.8;
 }
 
+/* error shake */
 .shake {
   animation: shake 0.2s;
 }
@@ -52,3 +62,19 @@ body {
   75% { transform: translate(-5px, -5px) scale(1); }
   100% { transform: translate(0) scale(1); }
 }
+
+/* ✅ NEW: stats styling */
+#stats {
+  margin-top: 20px;
+  font-size: 18px;
+  display: flex;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+/* highlight numbers */
+#stats span {
+  font-weight: bold;
+  color: #4caf50;
+}
+
