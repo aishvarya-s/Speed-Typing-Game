@@ -31,11 +31,30 @@
     </div>
 
   </div>
-    <div id="result" class="hidden">
+
+  <!-- UPDATED RESULT SCREEN -->
+  <div id="result" class="hidden">
     <h2>Results</h2>
+
     <p>WPM: <span id="final-wpm"></span></p>
     <p>Accuracy: <span id="final-accuracy"></span>%</p>
+
+    <!-- 🧠 NEW: weak keys -->
+    <p>Weak Keys: <span id="weak-keys"></span></p>
+
+    <!-- 🔥 NEW: practice button -->
+    <button onclick="startPractice()">Practice Weak Keys</button>
+
+    <!-- existing -->
     <button onclick="restartGame()">Play Again</button>
+  </div>
+
+  <div id="practice-popup" class="hidden">
+    <h2>Practice Complete</h2>
+    <p>Do you want to continue practicing?</p>
+
+    <button onclick="continuePractice()">Practice More</button>
+    <button onclick="exitPractice()">Back to Game</button>
   </div>
 
   <script src="script.js"></script>
